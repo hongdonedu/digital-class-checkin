@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>데이터 대시보드 — 디지털 수업 데이터 체크인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body { background-size: 32px 32px; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 16px 20px 48px; }
+  .top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .top h1 { margin: 0; font-size: 26px; line-height: 1.2; }
+  .top .meta { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+  .top .tools { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1.5px solid var(--ink); background: var(--sun-soft); vertical-align: middle; margin-left: 8px; }
+  .badge.live { background: var(--mint-soft); }
+
+  /* 필터 한 줄 */
+  .filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: var(--card); border: 2px solid var(--ink); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; }
+  .filters label { font-size: 13px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .filters select, .filters input[type=date] { border: 1.5px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--paper); font-size: 14px; min-height: 36px; }
+  .seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 7px 11px; font-size: 13px; font-weight: 600; color: var(--ink-2); min-height: 36px; }
+  .seg button + button { border-left: 1.5px solid var(--line); }
+  .seg button.on { background: var(--mint); color: #fff; }
+  .filters .n { margin-left: auto; font-size: 13px; color: var(--ink-2); }
+
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: var(--card); border: 2px solid var(--ink); border-radius: var(--radius); padding: 14px 16px; }
+  .kpi .l { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+  .kpi .v { font-family: var(--font-display); font-size: 36px; line-height: 1.1; margin-top: 2px; }
+  .kpi .v small { font-size: 16px; color: var(--ink-3); margin-left: 2px; font-family: var(--font-body); }
+  .kpi .d { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+  /* 차트 그리드 */
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+  .panel { grid-column: span 6; background: var(--card); border: 2px solid var(--ink); border-radius: var(--radius-lg); padding: 16px 18px 12px; min-width: 0; }
+  .panel.wide { grid-column: span 12; }
+  .panel.third { grid-column: span 4; }
+  .panel.headline { border-color: var(--coral); box-shadow: 0 4px 0 var(--coral); }
+  .ph { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+  .ph h2 { margin: 0; font-size: 19px; line-height: 1.25; }
+  .ph .q { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; }
+  .ph .tbtn { margin-left: auto; flex: 0 0 auto; border: 1.5px solid var(--line); background: transparent; border-radius: 8px; font-size: 12px; padding: 4px 9px; color: var(--ink-2); min-height: 30px; }
+  .ph .tbtn.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .cv { position: relative; height: 280px; }
+  .panel.wide .cv { height: 300px; }
+  .panel.tall .cv { height: 360px; }
+  .finding { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); background: var(--paper-2); border-radius: 8px; padding: 7px 10px; }
+  .finding b { color: var(--ink); }
+  table.tv { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; display: none; font-variant-numeric: tabular-nums; }
+  table.tv th, table.tv td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: right; }
+  table.tv th:first-child, table.tv td:first-child { text-align: left; }
+  table.tv th { color: var(--ink-2); font-weight: 600; }
+  .panel.showtable table.tv { display: table; }
+  .panel.showtable .cv { display: none; }
+  /* 히트맵 (활동 유형) */
+  .heat { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 13px; }
+  .heat th { font-weight: 600; color: var(--ink-2); padding: 4px; font-size: 12px; }
+  .heat td { text-align: center; padding: 9px 4px; border-radius: 7px; font-variant-numeric: tabular-nums; }
+  .heat td.r { text-align: left; font-weight: 600; white-space: nowrap; font-size: 12.5px; }
+  .empty { text-align: center; color: var(--ink-3); padding: 50px 10px; font-size: 14px; }
+  .note { font-size: 12px; color: var(--ink-3); margin-top: 18px; }
+
+  /* 프로젝터(우리 반 지금 보기) 모드 */
+  body.project .filters, body.project .note, body.project .tools .hide-p, body.project .survey-head, body.project #sgrid { display: none; }
+  .survey-head { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin: 30px 0 12px; padding-top: 18px; border-top: 2px dashed var(--line); }
+  .survey-head h2 { margin: 0; font-size: 22px; }
+  .survey-head p { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; }
+  .survey-head .tools { margin-left: auto; display: flex; gap: 8px; }
+  .split { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; align-items: start; }
+  .cmp { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .cmp th, .cmp td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+  .cmp th:first-child, .cmp td:first-child { text-align: left; }
+  .cmp th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+  .cmp caption { caption-side: top; text-align: left; font-weight: 700; font-size: 13px; padding: 0 0 6px; }
+  .cmp .bar { display: inline-block; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .cmp .src { font-size: 11px; color: var(--ink-3); margin-top: 6px; }
+  @media (max-width: 1000px) { .split { grid-template-columns: 1fr; } }
+  body.project .top h1 { font-size: 40px; }
+  body.project .kpi .v { font-size: 56px; }
+  body.project .kpi .l { font-size: 18px; }
+  body.project .ph h2 { font-size: 28px; }
+  body.project .ph .q { font-size: 17px; }
+  body.project .finding { font-size: 18px; padding: 10px 14px; }
+  body.project .cv { height: 340px; }
+  body.project .heat { font-size: 18px; } body.project .heat th { font-size: 16px; } body.project .heat td.r { font-size: 17px; }
+
+  @media (max-width: 1000px) { .panel, .panel.third { grid-column: span 12; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) {
+    .wrap { padding: 12px 16px 40px; } .kpis { grid-template-columns: 1fr 1fr; } .kpi .v { font-size: 30px; } .top h1 { font-size: 22px; } .cv { height: 240px; }
+    .filters { padding: 10px 12px; } .filters label { flex-wrap: wrap; max-width: 100%; } .filters input[type=date] { width: 100%; } .filters .n { margin-left: 0; }
+    .top .tools { margin-left: 0; } .panel { padding: 14px 12px 10px; } .heat { font-size: 11px; } .heat td { padding: 6px 2px; } .heat td.r { font-size: 11px; white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<div class="demo-banner">미리보기 모드 — 구글 시트 연결 전. 아래 차트는 <b>예시 데이터</b>입니다 (config.js 의 SCRIPT_URL 을 채우면 실제 데이터로 바뀝니다).</div>
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="title">데이터 대시보드 <span class="badge" id="badge">예시 데이터</span></h1>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="tools">
+      <button class="btn small ghost hide-p" id="projBtn" title="학년·반을 고른 뒤 누르면 큰 글씨 모드로 열립니다">우리 반 지금 보기</button>
+      <button class="btn small ghost" id="tableAll">모든 차트 표로</button>
+      <button class="btn small ghost" id="themeBtn" aria-label="밝게/어둡게">☾ 어둡게</button>
+      <button class="btn small ghost" id="reloadBtn">새로고침</button>
+      <button class="btn small primary" id="csvBtn">CSV 내려받기</button>
+    </div>
+  </header>
+
+  <section class="filters" aria-label="필터">
+    <label>학년 <select id="fGrade"><option value="">전체</option></select></label>
+    <label>반 <select id="fCls"><option value="">전체</option></select></label>
+    <label>기간
+      <span class="seg" id="fRange">
+        <button data-r="today">오늘</button><button data-r="7">7일</button><button data-r="30" class="on">30일</button><button data-r="all">전체</button>
+      </span>
+    </label>
+    <label><input type="date" id="fFrom" aria-label="시작일"> ~ <input type="date" id="fTo" aria-label="종료일"></label>
+    <label>구분
+      <span class="seg" id="fPhase">
+        <button data-p="" class="on">전체</button><button data-p="before">수업 전</button><button data-p="after">수업 후</button>
+      </span>
+    </label>
+    <span class="n" id="fN"></span>
+  </section>
+
+  <section class="kpis" id="kpis"></section>
+  <section class="grid" id="grid"></section>
+
+  <section class="survey-head" id="surveyHead">
+    <div>
+      <h2>시간표 설문 — 우리 반 시간표, 내가 짠다면</h2>
+      <p id="surveyMeta">3~6학년 1회 설문 · 학년·반 필터만 적용됩니다 (기간 필터 없음)</p>
+    </div>
+    <div class="tools"><a class="btn small ghost" href="survey.html" target="_blank" rel="noopener">설문 페이지</a><button class="btn small primary" id="surveyCsvBtn">설문 CSV 내려받기</button></div>
+  </section>
+  <section class="grid" id="sgrid"></section>
+  <p class="note">* 수업 전·후 쌍은 같은 날·같은 학년·반·번호의 체크인/체크아웃 응답을 맞춰 계산합니다. 평균은 1~5점 척도의 산술평균입니다. 이름은 수집하지 않습니다.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="config.js?v=2"></script>
+<script src="common.js"></script>
+<script>
+(function () {
+  const D = window.DCC, CFG = D.CFG;
+  const $ = (s) => document.querySelector(s);
+  const params = new URLSearchParams(location.search);
+  const PROJECT = !!(params.get("g") && params.get("c"));
+  if (PROJECT) document.body.classList.add("project");
+
+  // ---------- 테마 ----------
+  const savedTheme = D.lsGet("dcc_theme", null);
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+  function isDark() { const t = document.documentElement.dataset.theme; if (t) return t === "dark"; return matchMedia("(prefers-color-scheme: dark)").matches; }
+  function paintThemeBtn() { $("#themeBtn").textContent = isDark() ? "☀ 밝게" : "☾ 어둡게"; }
+  $("#themeBtn").addEventListener("click", () => { const next = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = next; D.lsSet("dcc_theme", next); paintThemeBtn(); render(); });
+  paintThemeBtn();
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function tokens() {
+    return { s: [css("--s1"), css("--s2"), css("--s3"), css("--s4"), css("--s5"), css("--s6")], ink: css("--ink"), ink2: css("--ink-2"), ink3: css("--ink-3"), grid: css("--chart-grid"), axis: css("--chart-axis"), card: css("--card"),
+      ramp: isDark() ? ["#8fd6c6", "#6cc6b3", "#3eb09a", "#1a9e87", "#11705f"] : ["#5fc0ac", "#3eb09a", "#1a9e87", "#11705f", "#0a4f43"] };
+  }
+  // 측정 항목 → 고정 색 (범례와 함께, 차트 간 일관)
+  const COL = () => { const t = tokens().s; return { mood: t[0], energy: t[1], expect: t[2], fun: t[0], difficulty: t[1], help: t[2], pre: t[3], post: t[0], before: t[2], after: t[0] }; };
+
+  // ---------- 상태 ----------
+  let ALL = [], DEMO = false, SURVEY = [];
+  const F = { grade: params.get("g") || "", cls: params.get("c") || "", range: PROJECT ? "today" : "30", from: "", to: "", phase: "" };
+  if (params.get("date") && params.get("date") !== "today") { F.range = "custom"; F.from = F.to = params.get("date"); }
+
+  for (let i = 1; i <= 6; i++) $("#fGrade").insertAdjacentHTML("beforeend", `<option value="${i}">${i}학년</option>`);
+  for (let i = 1; i <= 10; i++) $("#fCls").insertAdjacentHTML("beforeend", `<option value="${i}">${i}반</option>`);
+  $("#fGrade").value = F.grade; $("#fCls").value = F.cls;
+  $("#fGrade").addEventListener("change", (e) => { F.grade = e.target.value; render(); });
+  $("#fCls").addEventListener("change", (e) => { F.cls = e.target.value; render(); });
+  $("#fRange").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; F.range = b.dataset.r; F.from = F.to = ""; $("#fFrom").value = $("#fTo").value = ""; paintSeg(); render(); });
+  $("#fPhase").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; F.phase = b.dataset.p; paintSeg(); render(); });
+  $("#fFrom").addEventListener("change", (e) => { F.from = e.target.value; F.range = "custom"; paintSeg(); render(); });
+  $("#fTo").addEventListener("change", (e) => { F.to = e.target.value; F.range = "custom"; paintSeg(); render(); });
+  function paintSeg() { document.querySelectorAll("#fRange button").forEach((b) => b.classList.toggle("on", b.dataset.r === F.range)); document.querySelectorAll("#fPhase button").forEach((b) => b.classList.toggle("on", b.dataset.p === F.phase)); }
+  paintSeg();
+
+  $("#projBtn").addEventListener("click", () => {
+    const g = F.grade || prompt("학년을 입력하세요 (1~6)"), c = F.cls || prompt("반을 입력하세요 (1~10)");
+    if (g && c) location.href = `dashboard.html?g=${g}&c=${c}&date=today`;
+  });
+  $("#csvBtn").addEventListener("click", () => {
+    const rows = filtered(); const blob = new Blob([D.toCSV(rows)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `digital-checkin_${D.todayStr()}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  $("#reloadBtn").addEventListener("click", load);
+  $("#surveyCsvBtn").addEventListener("click", () => {
+    const blob = new Blob([D.toCSV(surveyFiltered(), D.SURVEY_HEADER)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `timetable-survey_${D.todayStr()}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  function surveyFiltered() { return SURVEY.filter((r) => (!F.grade || String(r.grade) === F.grade) && (!F.cls || String(r.cls) === F.cls)); }
+  let tableAll = false;
+  $("#tableAll").addEventListener("click", () => { tableAll = !tableAll; document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("showtable", tableAll)); document.querySelectorAll(".tbtn").forEach((b) => b.classList.toggle("on", tableAll)); $("#tableAll").textContent = tableAll ? "모든 차트 그래프로" : "모든 차트 표로"; });
+
+  // ---------- 데이터 ----------
+  async function load() {
+    $("#meta").textContent = "불러오는 중…";
+    try {
+      const r = await D.fetchAll(); ALL = r.rows.map(norm); DEMO = r.demo;
+      if (!PROJECT) { try { const sv = await D.fetchSurvey(); SURVEY = sv.rows.map((x) => { const o = Object.assign({}, x); ["grade", "cls", "num", "focus_best", "focus_worst", "science_pref"].forEach((k) => { o[k] = (o[k] === "" || o[k] == null) ? null : +o[k]; }); return o; }); } catch (e) { SURVEY = []; } }
+      // 미리보기 모드의 "우리 반 지금 보기": 오늘 데이터가 없으면 그 반의 가장 최근 수업일을 보여 줌
+      if (PROJECT && DEMO && F.range === "today") {
+        const mine = ALL.filter((x) => String(x.grade) === F.grade && String(x.cls) === F.cls);
+        if (!mine.some((x) => x.date === D.todayStr()) && mine.length) { const last = mine.map((x) => x.date).sort().pop(); F.range = "custom"; F.from = F.to = last; }
+      }
+      $("#badge").textContent = DEMO ? "예시 데이터" : "실시간"; $("#badge").classList.toggle("live", !DEMO);
+      render();
+    } catch (e) { $("#meta").textContent = "데이터를 불러오지 못했습니다. SCRIPT_URL 과 배포 상태를 확인해 주세요. (" + e.message + ")"; }
+  }
+  function norm(r) {
+    const o = Object.assign({}, r);
+    ["period", "grade", "cls", "num", "mood", "energy", "screen_yday", "expect", "confidence_pre", "fun", "difficulty", "help", "confidence_post"].forEach((k) => { o[k] = (o[k] === "" || o[k] == null) ? null : +o[k]; });
+    if (o.date instanceof Date) o.date = D.todayStr(o.date);
+    if (typeof o.date === "string" && o.date.length > 10) o.date = o.date.slice(0, 10);
+    return o;
+  }
+  function dateBounds() {
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    if (F.range === "custom") return [F.from || "0000", F.to || "9999"];
+    if (F.range === "all") return ["0000", "9999"];
+    if (F.range === "today") return [D.todayStr(t), D.todayStr(t)];
+    const f = new Date(t); f.setDate(t.getDate() - (+F.range - 1)); return [D.todayStr(f), D.todayStr(t)];
+  }
+  function filtered(ignorePhase) {
+    const [a, b] = dateBounds();
+    return ALL.filter((r) => (!F.grade || String(r.grade) === F.grade) && (!F.cls || String(r.cls) === F.cls) && r.date >= a && r.date <= b && (ignorePhase || !F.phase || r.phase === F.phase));
+  }
+  const mean = (arr) => { const v = arr.filter((x) => typeof x === "number" && !isNaN(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+  const r1 = (x) => (x == null ? null : Math.round(x * 100) / 100);
+  const fmt = (x) => (x == null ? "–" : (Math.round(x * 10) / 10).toFixed(1));
+  function groupBy(rows, fn) { const m = new Map(); rows.forEach((r) => { const k = fn(r); if (k == null || k === "") return; if (!m.has(k)) m.set(k, []); m.get(k).push(r); }); return m; }
+  function pairKey(r) { return `${r.date}|${r.grade}|${r.cls}|${r.num}`; }
+  function joined(rows) { // 수업 전 행에 수업 후 값을, 수업 후 행에 수업 전 값을 붙임
+    const before = new Map(), after = new Map();
+    rows.forEach((r) => (r.phase === "before" ? before : after).set(pairKey(r), r));
+    const out = [];
+    before.forEach((b, k) => { const a = after.get(k); if (a) out.push(Object.assign({}, b, { fun: a.fun, difficulty: a.difficulty, help: a.help, confidence_post: a.confidence_post, best: a.best, tool: a.tool })); });
+    return { pairs: out, nBefore: before.size, nAfter: after.size };
+  }
+
+  // ---------- 차트 공통 ----------
+  const charts = [];
+  function destroyAll() { charts.forEach((c) => c.destroy()); charts.length = 0; }
+  function baseOpts(t, { stacked = false, horizontal = false, max = null, legend = true, pct = false, suggestedMax = null } = {}) {
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily; Chart.defaults.font.size = PROJECT ? 15 : 12.5; Chart.defaults.color = t.ink2;
+    const val = { stacked, beginAtZero: true, grid: { color: t.grid, drawTicks: false }, border: { display: false }, ticks: { color: t.ink3, padding: 6, callback: (v) => pct ? v + "%" : v } };
+    if (max != null) { val.max = max; if (max === 5) val.ticks.stepSize = 1; } if (suggestedMax != null) val.suggestedMax = suggestedMax;
+    const cat = { stacked, grid: { display: false }, border: { color: t.axis }, ticks: { color: t.ink2 } };
+    return {
+      responsive: true, maintainAspectRatio: false, indexAxis: horizontal ? "y" : "x", animation: { duration: 250 },
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: legend, position: "top", align: "start", labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: "rectRounded", padding: 14, color: t.ink2 } },
+        tooltip: { backgroundColor: t.ink, titleColor: t.card, bodyColor: t.card, padding: 10, cornerRadius: 8, displayColors: true, boxPadding: 4, callbacks: { label: (c) => ` ${c.dataset.label ? c.dataset.label + ": " : ""}${c.formattedValue}${pct ? "%" : ""}${c.dataset.n ? ` (n=${c.dataset.n[c.dataIndex]})` : ""}` } }
+      },
+      scales: horizontal ? { x: val, y: cat } : { x: cat, y: val }
+    };
+  }
+  function bar(color, label, data, extra = {}) {
+    return Object.assign({ label, data, backgroundColor: color, borderRadius: 4, borderSkipped: "start", maxBarThickness: 34, categoryPercentage: 0.72, barPercentage: 0.86 }, extra);
+  }
+  function panel(id, { title, q, cls = "", finding = "", noTable = false, target = "#grid" }) {
+    const p = document.createElement("section"); p.className = "panel " + cls; p.id = "p-" + id;
+    p.innerHTML = `<div class="ph"><div><h2>${title}</h2>${q ? `<p class="q">${q}</p>` : ""}</div>${noTable ? "" : `<button class="tbtn" aria-pressed="false">표</button>`}</div><div class="cv"><canvas aria-label="${title}" role="img"></canvas></div>${finding ? `<p class="finding">${finding}</p>` : ""}<table class="tv"></table>`;
+    const tb = p.querySelector(".tbtn"); if (tb) tb.addEventListener("click", () => { const on = p.classList.toggle("showtable"); tb.classList.toggle("on", on); tb.setAttribute("aria-pressed", on); });
+    if (tableAll) { p.classList.add("showtable"); if (tb) tb.classList.add("on"); }
+    $(target).appendChild(p); return p;
+  }
+  function tableFor(p, labels, datasets, pct) {
+    const t = p.querySelector("table.tv"); if (!t) return;
+    t.innerHTML = `<thead><tr><th></th>${datasets.map((d) => `<th>${d.label || "값"}</th>`).join("")}</tr></thead><tbody>${labels.map((l, i) => `<tr><td>${l}</td>${datasets.map((d) => `<td>${d.data[i] == null ? "–" : (pct ? d.data[i] + "%" : d.data[i])}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  }
+  function draw(p, type, labels, datasets, opts) {
+    const cv = p.querySelector("canvas");
+    if (!labels.length || datasets.every((d) => d.data.every((v) => v == null || v === 0))) { p.querySelector(".cv").innerHTML = `<div class="empty">이 조건에는 아직 데이터가 없습니다.</div>`; return; }
+    charts.push(new Chart(cv, { type, data: { labels, datasets }, options: opts }));
+    tableFor(p, labels, datasets, opts.__pct);
+  }
+  function gradesIn(rows) { const s = new Set(rows.map((r) => r.grade).filter(Boolean)); return [1, 2, 3, 4, 5, 6].filter((g) => s.has(g)); }
+  const gl = (gs) => gs.map((g) => g + "학년");
+
+  // ---------- 렌더 ----------
+  function render() {
+    destroyAll(); $("#grid").innerHTML = ""; $("#kpis").innerHTML = ""; $("#sgrid").innerHTML = "";
+    const t = tokens(), C = COL();
+    if (!PROJECT) renderSurvey(t, C);
+    const rows = filtered(), rowsAllPhase = filtered(true);
+    const before = rowsAllPhase.filter((r) => r.phase === "before"), after = rowsAllPhase.filter((r) => r.phase === "after");
+    const J = joined(rowsAllPhase);
+    const [da, db] = dateBounds();
+    const title = PROJECT ? `${F.grade}학년 ${F.cls}반 — 오늘 우리 반 데이터 읽기` : "데이터 대시보드";
+    $("#title").innerHTML = `${title} <span class="badge ${DEMO ? "" : "live"}" id="badge">${DEMO ? "예시 데이터" : "실시간"}</span>`;
+    $("#meta").textContent = `${CFG.SCHOOL || ""} · ${F.range === "all" ? "전체 기간" : (da === db ? da : `${da} ~ ${db}`)} · 응답 ${rows.length.toLocaleString()}건${PROJECT && DEMO && da !== D.todayStr() ? " · 예시 데이터라 가장 최근 수업일을 보여 줍니다" : ""}`;
+    $("#fN").textContent = `${rows.length.toLocaleString()}건 표시 중`;
+
+    // KPI
+    const today = D.todayStr();
+    const classes = new Set(rowsAllPhase.map((r) => `${r.grade}-${r.cls}`)).size;
+    const todayN = ALL.filter((r) => r.date === today && (!F.grade || String(r.grade) === F.grade) && (!F.cls || String(r.cls) === F.cls)).length;
+    const pairRate = J.nBefore ? Math.round(J.pairs.length / J.nBefore * 100) : null;
+    const kp = PROJECT ? [
+      ["오늘 체크인", before.length, "명", "수업 시작"], ["오늘 체크아웃", after.length, "명", "수업 끝"],
+      ["전·후 모두 한 친구", J.pairs.length, "명", pairRate == null ? "" : `체크인의 ${pairRate}%`],
+      ["우리 반 데이터", rowsAllPhase.length, "개", "오늘 모인 조각"]
+    ] : [
+      ["총 응답 수", rowsAllPhase.length, "건", `수업 전 ${before.length} · 후 ${after.length}`], ["참여 학급 수", classes, "학급", gradesIn(rowsAllPhase).length + "개 학년"],
+      ["오늘 응답 수", todayN, "건", today], ["수업 전·후 쌍 비율", pairRate == null ? "–" : pairRate, pairRate == null ? "" : "%", `${J.pairs.length}쌍 / 체크인 ${J.nBefore}`]
+    ];
+    $("#kpis").innerHTML = kp.map(([l, v, u, d]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${typeof v === "number" ? v.toLocaleString() : v}<small>${u}</small></div><div class="d">${d}</div></div>`).join("");
+
+    if (!rowsAllPhase.length) { $("#grid").innerHTML = `<div class="panel wide"><div class="empty">이 조건에는 아직 응답이 없습니다. 기간이나 학년 필터를 바꿔 보세요.</div></div>`; return; }
+    if (PROJECT) return renderProject(t, C, before, after, J);
+
+    const gs = gradesIn(rowsAllPhase);
+    const byGB = groupBy(before, (r) => r.grade), byGA = groupBy(after, (r) => r.grade);
+    const gMean = (map, key) => gs.map((g) => r1(mean((map.get(g) || []).map((r) => r[key]))));
+
+    // 1. 헤드라인: 자신감 수업 전 → 후
+    {
+      const pre = gMean(byGB, "confidence_pre"), post = gMean(byGA, "confidence_post");
+      const dAll = r1((mean(after.map((r) => r.confidence_post)) ?? 0) - (mean(before.map((r) => r.confidence_pre)) ?? 0));
+      const up = gs.filter((g, i) => pre[i] != null && post[i] != null && post[i] > pre[i]).length;
+      const p = panel("conf", { title: "디지털 도구 자신감 — 수업 전 → 수업 후", q: "한 번의 수업이 '나는 할 수 있다'는 느낌을 얼마나 바꿨을까?", cls: "wide headline",
+        finding: dAll == null ? "" : `전체 평균 <b>${fmt(mean(before.map((r) => r.confidence_pre)))} → ${fmt(mean(after.map((r) => r.confidence_post)))}</b> (${dAll >= 0 ? "+" : ""}${fmt(dAll)}점). ${gs.length}개 학년 중 <b>${up}개 학년</b>에서 수업 후 자신감이 올랐습니다.` });
+      const o = baseOpts(t, { max: 5 }); o.plugins.tooltip.callbacks.afterBody = (items) => { const i = items[0].dataIndex; return pre[i] != null && post[i] != null ? [`변화: ${post[i] - pre[i] >= 0 ? "+" : ""}${fmt(post[i] - pre[i])}`] : []; };
+      draw(p, "bar", gl(gs), [bar(C.pre, "수업 전 자신감", pre, { n: gs.map((g) => (byGB.get(g) || []).length) }), bar(C.post, "수업 후 자신감", post, { n: gs.map((g) => (byGA.get(g) || []).length) })], o);
+    }
+    // 2. 어제 기기 사용시간 분포 (학년별, 100% 누적)
+    {
+      const p = panel("screen", { title: "어제 집에서 기기 사용 시간 — 학년별", q: "학년이 올라가면 집에서 쓰는 시간도 늘어날까?" });
+      const ds = D.SCREEN_LABELS.map((lab, k) => bar(t.ramp[k], lab, gs.map((g) => { const a = byGB.get(g) || []; const n = a.filter((r) => r.screen_yday != null).length; return n ? Math.round(a.filter((r) => r.screen_yday === k).length / n * 100) : null; }), { borderRadius: 0, borderColor: t.card, borderWidth: { top: 2 }, borderSkipped: false }));
+      const o = baseOpts(t, { stacked: true, max: 100, pct: true }); o.__pct = true;
+      draw(p, "bar", gl(gs), ds, o);
+    }
+    // 3. 어제 활동 유형 히트맵 (복수응답 비율)
+    {
+      const p = panel("use", { title: "어제 기기로 한 일 — 학년별 비율", q: "복수 응답 · 각 학년 체크인 응답자 중 해당 활동을 고른 비율(%)", noTable: true });
+      const n = gs.map((g) => (byGB.get(g) || []).filter((r) => r.use_yday).length);
+      const cell = (pct) => { const steps = t.ramp; const idx = pct == null ? -1 : Math.min(4, Math.floor(pct / 20)); const bg = idx < 0 ? "transparent" : steps[idx]; const dark = idx >= 2; return `<td style="background:${bg};color:${idx < 0 ? css("--ink-3") : dark ? "#fff" : css("--ink")}">${pct == null ? "–" : pct + "%"}</td>`; };
+      const rowsHtml = D.USE_OPTIONS.map((u) => `<tr><td class="r">${u}</td>${gs.map((g, i) => { const a = (byGB.get(g) || []).filter((r) => r.use_yday); const pct = n[i] ? Math.round(a.filter((r) => String(r.use_yday).split(";").includes(u)).length / n[i] * 100) : null; return cell(pct); }).join("")}</tr>`).join("");
+      p.querySelector(".cv").innerHTML = `<table class="heat" aria-label="활동 유형 비율"><thead><tr><th></th>${gs.map((g, i) => `<th>${g}학년<br><span style="font-weight:400;color:${css("--ink-3")}">n=${n[i]}</span></th>`).join("")}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+      p.querySelector(".cv").style.height = "auto"; p.querySelector(".cv").style.overflowX = "auto";
+    }
+    // 4. 수업 전 기분·컨디션·기대 (학년별)
+    {
+      const p = panel("pre", { title: "수업 시작 때 기분 · 컨디션 · 기대 — 학년별 평균", q: "1~5점" });
+      draw(p, "bar", gl(gs), [bar(C.mood, "기분", gMean(byGB, "mood")), bar(C.energy, "컨디션", gMean(byGB, "energy")), bar(C.expect, "기대", gMean(byGB, "expect"))], baseOpts(t, { max: 5 }));
+    }
+    // 5. 수업 후 재미·어려움·혼자하기 (학년별)
+    {
+      const p = panel("post", { title: "수업 끝 때 재미 · 어려움 · 혼자하기 — 학년별 평균", q: "어려움은 높을수록 어려웠다는 뜻, 혼자하기는 높을수록 스스로 했다는 뜻" });
+      draw(p, "bar", gl(gs), [bar(C.fun, "재미", gMean(byGA, "fun")), bar(C.difficulty, "어려움", gMean(byGA, "difficulty")), bar(C.help, "혼자하기", gMean(byGA, "help"))], baseOpts(t, { max: 5 }));
+    }
+    // 6. 도구별 재미/어려움/혼자하기
+    {
+      const byT = groupBy(after, (r) => r.tool); const tools = D.TOOLS.filter((x) => (byT.get(x) || []).length >= 3);
+      const p = panel("tool", { title: "도구별 재미 · 어려움 · 혼자하기", q: "응답 3건 이상인 도구만 · 괄호는 응답 수", cls: "tall" });
+      const lab = tools.map((x) => `${x.replace("(AI로 앱 만들기)", "").replace("(엔트리·스크래치)", "")} (${byT.get(x).length})`);
+      const m = (k) => tools.map((x) => r1(mean(byT.get(x).map((r) => r[k]))));
+      const thin = { maxBarThickness: 14 };
+      draw(p, "bar", lab, [bar(C.fun, "재미", m("fun"), thin), bar(C.difficulty, "어려움", m("difficulty"), thin), bar(C.help, "혼자하기", m("help"), thin)], baseOpts(t, { max: 5, horizontal: true }));
+    }
+    // 7. 데이터 리터러시 질문: 기기 사용시간 그룹별
+    {
+      const byS = groupBy(J.pairs, (r) => r.screen_yday);
+      const ks = [0, 1, 2, 3, 4].filter((k) => (byS.get(k) || []).length >= 3);
+      const p = panel("sg", { title: "집에서 기기를 많이 쓰는 아이가 수업에서도 잘할까?", q: "어제 기기 사용 시간 그룹별 평균 (전·후 쌍이 맞는 응답만)", cls: "tall",
+        finding: ks.length >= 2 ? (() => { const h = mean((byS.get(ks[0]) || []).map((r) => r.help)), hh = mean((byS.get(ks[ks.length - 1]) || []).map((r) => r.help)); return `'${D.SCREEN_LABELS[ks[0]]}' 그룹 혼자하기 <b>${fmt(h)}</b> vs '${D.SCREEN_LABELS[ks[ks.length - 1]]}' 그룹 <b>${fmt(hh)}</b>. 차이가 작다면 "많이 쓰는 것"과 "잘 다루는 것"은 다른 이야기일 수 있어요 — 아이들과 토론해 보세요.`; })() : "" });
+      const m = (k) => ks.map((s) => r1(mean(byS.get(s).map((r) => r[k]))));
+      draw(p, "bar", ks.map((k) => `${D.SCREEN_LABELS[k]} (${byS.get(k).length})`), [bar(C.fun, "재미", m("fun")), bar(C.help, "혼자하기", m("help")), bar(C.pre, "자신감(수업 전)", m("confidence_pre"))], baseOpts(t, { max: 5 }));
+    }
+    // 8. 요일별 · 교시별 기분/컨디션
+    {
+      const p = panel("wd", { title: "요일별 기분 · 컨디션", q: "수업 시작 체크인 기준" , cls: "third" });
+      const wds = ["월", "화", "수", "목", "금"].filter((w) => before.some((r) => r.weekday === w)); const byW = groupBy(before, (r) => r.weekday);
+      draw(p, "bar", wds.map((w) => w + "요일"), [bar(C.mood, "기분", wds.map((w) => r1(mean(byW.get(w).map((r) => r.mood))))), bar(C.energy, "컨디션", wds.map((w) => r1(mean(byW.get(w).map((r) => r.energy)))))], baseOpts(t, { max: 5 }));
+      const p2 = panel("pd", { title: "교시별 기분 · 컨디션", q: "수업 시작 체크인 기준", cls: "third" });
+      const pds = [1, 2, 3, 4, 5, 6].filter((x) => before.some((r) => r.period === x)); const byP = groupBy(before, (r) => r.period);
+      draw(p2, "bar", pds.map((x) => x + "교시"), [bar(C.mood, "기분", pds.map((x) => r1(mean(byP.get(x).map((r) => r.mood))))), bar(C.energy, "컨디션", pds.map((x) => r1(mean(byP.get(x).map((r) => r.energy)))))], baseOpts(t, { max: 5 }));
+    }
+    // 9. 가장 좋았던 것 (학년별 100% 누적)
+    {
+      const p = panel("best", { title: "가장 좋았던 것 — 학년별", q: "수업 끝 체크아웃 · 비율(%)", cls: "third" });
+      const ds = D.BEST_OPTIONS.map((b, k) => bar(t.s[k], b, gs.map((g) => { const a = (byGA.get(g) || []).filter((r) => r.best); return a.length ? Math.round(a.filter((r) => r.best === b).length / a.length * 100) : null; }), { borderRadius: 0, borderColor: t.card, borderWidth: { top: 2 }, borderSkipped: false }));
+      const o = baseOpts(t, { stacked: true, max: 100, pct: true }); o.__pct = true; o.plugins.legend.labels.padding = 8;
+      draw(p, "bar", gl(gs), ds, o);
+    }
+    // 10. 응답 수 추이
+    {
+      const p = panel("n", { title: "날짜별 응답 수", q: "체크인(수업 전)과 체크아웃(수업 후)", cls: "wide" });
+      const dates = Array.from(new Set(rowsAllPhase.map((r) => r.date))).sort(); const byD = groupBy(rowsAllPhase, (r) => r.date);
+      const line = (color, label, data) => ({ label, data, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: dates.length > 40 ? 0 : 4, pointHoverRadius: 6, tension: 0.25 });
+      const o = baseOpts(t, {}); o.scales.y.grid.color = t.grid;
+      draw(p, "line", dates.map((d) => d.slice(5)), [line(C.before, "수업 전", dates.map((d) => byD.get(d).filter((r) => r.phase === "before").length)), line(C.after, "수업 후", dates.map((d) => byD.get(d).filter((r) => r.phase === "after").length))], o);
+    }
+  }
+
+  // ---------- 우리 반 지금 보기 (프로젝터) ----------
+  function renderProject(t, C, before, after, J) {
+    const dist = (rows, key) => [1, 2, 3, 4, 5].map((v) => rows.filter((r) => r[key] === v).length);
+    const single = (color, data) => bar(color, "", data);
+    {
+      const p = panel("pm", { title: "지금 우리 반 기분은?", q: "1 아주 별로 … 5 아주 좋아 · 몇 명이 골랐을까?", cls: "third" });
+      const o = baseOpts(t, { legend: false }); o.scales.y.ticks.precision = 0;
+      draw(p, "bar", ["😫 1", "😕 2", "😐 3", "🙂 4", "😄 5"], [single(C.mood, dist(before, "mood"))], o);
+    }
+    {
+      const p = panel("pe", { title: "지금 우리 반 컨디션은?", q: "1 힘없어 … 5 쌩쌩", cls: "third" });
+      const o = baseOpts(t, { legend: false }); o.scales.y.ticks.precision = 0;
+      draw(p, "bar", ["1", "2", "3", "4", "5"], [single(C.energy, dist(before, "energy"))], o);
+    }
+    {
+      const p = panel("ps", { title: "어제 집에서 기기를 얼마나 썼을까?", q: "명", cls: "third" });
+      const o = baseOpts(t, { legend: false }); o.scales.y.ticks.precision = 0;
+      draw(p, "bar", D.SCREEN_LABELS, [bar(t.ramp[2], "", [0, 1, 2, 3, 4].map((k) => before.filter((r) => r.screen_yday === k).length))], o);
+    }
+    {
+      const n = before.filter((r) => r.use_yday).length;
+      const p = panel("pu", { title: "어제 기기로 뭘 했을까?", q: `복수 응답 · ${n}명 중 몇 %가 골랐을까?`, cls: "wide" });
+      const o = baseOpts(t, { legend: false, horizontal: true, max: 100, pct: true }); o.__pct = true;
+      draw(p, "bar", D.USE_OPTIONS, [bar(t.ramp[2], "비율", D.USE_OPTIONS.map((u) => n ? Math.round(before.filter((r) => String(r.use_yday).split(";").includes(u)).length / n * 100) : 0))], o);
+    }
+    if (after.length) {
+      const pre = r1(mean(before.map((r) => r.confidence_pre))), post = r1(mean(after.map((r) => r.confidence_post)));
+      const p = panel("pc", { title: "자신감, 수업 전과 후가 달라졌을까?", q: "평균 1~5점", cls: "third headline", finding: pre != null && post != null ? `<b>${fmt(pre)} → ${fmt(post)}</b> (${post - pre >= 0 ? "+" : ""}${fmt(post - pre)}점)` : "" });
+      const o = baseOpts(t, { legend: false, max: 5 });
+      charts.push(new Chart(p.querySelector("canvas"), { type: "bar", data: { labels: ["수업 전", "수업 후"], datasets: [{ label: "자신감", data: [pre, post], backgroundColor: [C.pre, C.post], borderRadius: 4, borderSkipped: "start", maxBarThickness: 60 }] }, options: o }));
+      tableFor(p, ["수업 전", "수업 후"], [{ label: "자신감", data: [pre, post] }]);
+      const p2 = panel("pf", { title: "오늘 수업은 어땠어?", q: "재미 · 어려움 · 혼자하기 평균", cls: "third" });
+      const o2 = baseOpts(t, { legend: false, max: 5 });
+      charts.push(new Chart(p2.querySelector("canvas"), { type: "bar", data: { labels: ["재미", "어려움", "혼자하기"], datasets: [{ label: "평균", data: [r1(mean(after.map((r) => r.fun))), r1(mean(after.map((r) => r.difficulty))), r1(mean(after.map((r) => r.help)))], backgroundColor: [C.fun, C.difficulty, C.help], borderRadius: 4, borderSkipped: "start", maxBarThickness: 60 }] }, options: o2 }));
+      tableFor(p2, ["재미", "어려움", "혼자하기"], [{ label: "평균", data: [r1(mean(after.map((r) => r.fun))), r1(mean(after.map((r) => r.difficulty))), r1(mean(after.map((r) => r.help)))] }]);
+      const p3 = panel("pb", { title: "가장 좋았던 것", q: "명", cls: "third" });
+      const o3 = baseOpts(t, { legend: false, horizontal: true }); o3.scales.x.ticks.precision = 0;
+      draw(p3, "bar", D.BEST_OPTIONS, [bar(C.post, "명", D.BEST_OPTIONS.map((b) => after.filter((r) => r.best === b).length))], o3);
+      const notes = after.map((r) => r.note).filter(Boolean);
+      if (notes.length) { const p4 = panel("pn", { title: "한 줄 소감", q: `${notes.length}개`, cls: "wide", noTable: true }); p4.querySelector(".cv").style.height = "auto"; p4.querySelector(".cv").innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px">${notes.map((x) => `<span style="background:var(--paper-2);border-radius:999px;padding:6px 14px;font-size:${PROJECT ? 18 : 14}px">${String(x).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c])}</span>`).join("")}</div>`; }
+    } else {
+      const p = panel("pw", { title: "체크아웃은 수업 끝에!", q: "수업이 끝나면 체크아웃 데이터가 여기에 더해져요.", cls: "wide", noTable: true });
+      p.querySelector(".cv").innerHTML = `<div class="empty">아직 체크아웃 응답이 없어요.</div>`;
+    }
+  }
+
+  // ---------- 시간표 설문 ----------
+  function renderSurvey(t, C) {
+    const S = surveyFiltered(); const T = "#sgrid";
+    $("#surveyMeta").textContent = `3~6학년 1회 설문 · 학년·반 필터만 적용 · 응답 ${S.length}명${DEMO ? " (예시 데이터)" : ""}`;
+    if (!S.length) { $("#sgrid").innerHTML = `<div class="panel wide"><div class="empty">아직 설문 응답이 없습니다. 선생님 메뉴의 "시간표 설문 QR"로 학생들에게 안내해 보세요.</div></div>`; return; }
+    const gs = [3, 4, 5, 6].filter((g) => S.some((r) => r.grade === g));
+    const pct = (n, d) => (d ? Math.round(n / d * 100) : null);
+    // (a) 1교시 희망 과목 — 학년별 누적 (명), 옆에 부산 실제 비교표
+    {
+      const subs = D.SUBJECTS.slice().sort((a, b) => S.filter((r) => r.p1_subject === b).length - S.filter((r) => r.p1_subject === a).length).filter((x) => S.some((r) => r.p1_subject === x));
+      const p = panel("sv-p1", { title: "1교시에 하고 싶은 과목", q: "학생 희망(명, 학년별 누적) vs 부산 실제 시간표에서 1·2교시에 놓이는 비율", cls: "wide", target: T, noTable: true });
+      const cv = p.querySelector(".cv"); const wrap = document.createElement("div"); wrap.className = "split"; cv.parentNode.insertBefore(wrap, cv); wrap.appendChild(cv);
+      const ds = gs.map((g, i) => bar(t.ramp[i + (gs.length < 4 ? 1 : 0)], g + "학년", subs.map((x) => S.filter((r) => r.grade === g && r.p1_subject === x).length), { borderRadius: 0, borderColor: t.card, borderWidth: { top: 2 }, borderSkipped: false }));
+      const o = baseOpts(t, { stacked: true }); o.scales.y.ticks.precision = 0;
+      charts.push(new Chart(cv.querySelector("canvas"), { type: "bar", data: { labels: subs.map((x) => x.replace("(자율·동아리)", "")), datasets: ds }, options: o }));
+      const maxW = 60;
+      const rowsHtml = subs.filter((x) => D.BUSAN_P12[x] != null).map((x) => { const w = pct(S.filter((r) => r.p1_subject === x).length, S.length); const b = D.BUSAN_P12[x]; return `<tr><td>${x}</td><td><span class="bar" style="width:${(w / 100) * maxW}px;background:${t.s[0]}"></span>${w}%</td><td><span class="bar" style="width:${(b / 100) * maxW}px;background:${t.ink3}"></span>${b}%</td></tr>`; }).join("");
+      const tbl = document.createElement("div"); tbl.innerHTML = `<table class="cmp"><caption>부산 실제 시간표와 비교</caption><thead><tr><th>과목</th><th>학생 희망 1교시</th><th>부산 1·2교시 배치</th></tr></thead><tbody>${rowsHtml}</tbody></table><p class="src">부산 실제: NEIS 시간표 분석, 3~6학년 1반 1주 기준 · 과목이 1·2교시에 놓인 비율 · 과학 2교시 연속 블록 ${D.BUSAN_SCIENCE_BLOCK}%</p>`;
+      wrap.appendChild(tbl);
+    }
+    // (b) 집중 최고 / 최악 교시
+    {
+      const p = panel("sv-focus", { title: "머리가 가장 잘 돌아가는 교시 vs 가장 힘든 교시", q: "응답 비율(%)", target: T });
+      const lab = [1, 2, 3, 4, 5, 6].map((x) => x + "교시");
+      const best = [1, 2, 3, 4, 5, 6].map((x) => pct(S.filter((r) => r.focus_best === x).length, S.length)), worst = [1, 2, 3, 4, 5, 6].map((x) => pct(S.filter((r) => r.focus_worst === x).length, S.length));
+      const wi = worst.indexOf(Math.max(...worst)); const why = D.WORST_WHY.map((w) => [w, S.filter((r) => r.focus_worst === wi + 1 && r.worst_why === w).length]).sort((a, b) => b[1] - a[1])[0];
+      const o = baseOpts(t, { pct: true }); o.__pct = true;
+      draw(p, "bar", lab, [bar(t.s[0], "가장 잘 돌아가", best), bar(t.s[1], "가장 힘들어", worst)], o);
+      p.insertAdjacentHTML("beforeend", `<p class="finding">가장 힘든 교시 1위는 <b>${wi + 1}교시</b>(${worst[wi]}%), 그 이유 1위는 <b>${why ? why[0] : "–"}</b>.</p>`);
+    }
+    // (c) 과학 선호 교시 + 블록 선호
+    {
+      const p = panel("sv-sci", { title: "과학은 몇 교시가 좋아?", q: "응답 비율(%) · 아래는 실험·만들기 과목 블록 선호", target: T });
+      const lab = [1, 2, 3, 4, 5, 6].map((x) => x + "교시");
+      const o = baseOpts(t, { pct: true, legend: false }); o.__pct = true;
+      draw(p, "bar", lab, [bar(t.s[2], "과학 희망 교시", [1, 2, 3, 4, 5, 6].map((x) => pct(S.filter((r) => r.science_pref === x).length, S.length)))], o);
+      const bl = D.BLOCK_OPTIONS.map((b) => `${b} <b>${pct(S.filter((r) => r.two_in_row === b).length, S.length)}%</b>`).join(" · ");
+      p.insertAdjacentHTML("beforeend", `<p class="finding">${bl}<br>부산 실제 시간표에서 과학이 두 교시 연속으로 놓인 비율은 <b>${D.BUSAN_SCIENCE_BLOCK}%</b>입니다.</p>`);
+    }
+  }
+
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { paintThemeBtn(); render(); });
+  load();
+})();
+</script>
+</body>
+</html>

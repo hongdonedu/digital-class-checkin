@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>선생님 메뉴 — 디지털 수업 데이터 체크인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .wrap { max-width: 900px; margin: 0 auto; padding: 16px 20px 48px; }
+  h1 { font-size: 28px; margin: 6px 0 2px; }
+  .lead { color: var(--ink-2); margin: 0 0 18px; font-size: 14px; }
+  .card { padding: 20px 22px; margin-bottom: 16px; }
+  .card h2 { font-size: 21px; margin: 0 0 10px; }
+  .pin { display: flex; gap: 10px; align-items: center; max-width: 420px; }
+  .pin input { flex: 1; min-width: 0; width: 100%; border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 18px; letter-spacing: .3em; background: var(--paper); min-height: 48px; }
+  .err { color: var(--warn); font-size: 14px; margin: 8px 0 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
+  .row label { font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .row select, .row input[type=text] { border: 1.5px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--paper); min-height: 38px; font-size: 14px; }
+  .row input[type=text] { width: min(320px, 100%); min-width: 0; }
+  .row label { max-width: 100%; flex-wrap: wrap; }
+  .qrs { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .qr { border: 2px dashed var(--line); border-radius: var(--radius); padding: 14px; text-align: center; background: var(--card); }
+  .qr h3 { margin: 0 0 6px; font-size: 20px; }
+  .qr .code { display: inline-block; background: #fff; padding: 8px; border-radius: 8px; }
+  .qr .code img, .qr .code canvas { display: block; }
+  .qr .url { font-size: 11px; color: var(--ink-3); word-break: break-all; margin-top: 8px; }
+  .qr .links { display: flex; gap: 6px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+  .links a { font-size: 12px; font-weight: 600; text-decoration: none; padding: 4px 9px; border-radius: 999px; border: 1.5px solid var(--line); color: var(--ink); }
+  .links a.after { border-color: var(--coral); color: var(--coral); }
+  .steps { margin: 0; padding-left: 20px; color: var(--ink-2); font-size: 14px; line-height: 1.7; }
+  .steps b { color: var(--ink); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .hidden { display: none; }
+  .status { font-size: 13px; margin-top: 8px; color: var(--ink-2); }
+  .status.ok { color: var(--ok); } .status.bad { color: var(--warn); }
+  @media print { body { background: #fff; } .no-print, .demo-banner { display: none !important; } .card { border: none; box-shadow: none; } .qr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="demo-banner">미리보기 모드 — 구글 시트 연결 전. config.js 의 SCRIPT_URL 을 채우면 실제 저장이 시작됩니다.</div>
+<main class="wrap">
+  <h1>선생님 메뉴</h1>
+  <p class="lead">학급별 QR 코드를 만들고, 대시보드로 이동합니다. 학생 페이지로 돌아가기: <a href="index.html">index.html</a></p>
+
+  <section class="card no-print" id="lock">
+    <h2>PIN 입력</h2>
+    <div class="pin"><input type="password" id="pin" inputmode="numeric" maxlength="8" placeholder="••••" aria-label="PIN"><button class="btn primary" id="pinBtn">열기</button></div>
+    <p class="err hidden" id="pinErr">PIN이 맞지 않습니다. config.js 의 TEACHER_PIN 을 확인해 주세요.</p>
+  </section>
+
+  <div id="menu" class="hidden">
+    <section class="card">
+      <h2>바로 가기</h2>
+      <div class="actions">
+        <a class="btn primary" href="dashboard.html">데이터 대시보드</a>
+        <a class="btn sun" id="projLink" href="dashboard.html">우리 반 지금 보기 (큰 글씨)</a>
+        <a class="btn ghost" href="index.html" target="_blank" rel="noopener">학생 페이지 새 창</a>
+      </div>
+      <p class="status" id="connStatus"></p>
+    </section>
+
+    <section class="card">
+      <h2>학급 QR 코드</h2>
+      <div class="row no-print">
+        <label>학년 <select id="qGrade"></select></label>
+        <label>반 <select id="qCls"><option value="all">1~10반 모두</option></select></label>
+        <label>교시 <select id="qPeriod"><option value="">학생이 선택</option></select></label>
+        <label>오늘 도구 <select id="qTool"><option value="">학생이 선택</option></select></label>
+        <label>학생 페이지 주소 <input type="text" id="qBase" aria-label="학생 페이지 주소"></label>
+        <button class="btn small ghost" id="printBtn">인쇄</button>
+      </div>
+      <p class="lead no-print">QR은 <b>수업 시작(체크인)</b> 주소입니다. 수업 끝에는 같은 QR을 다시 찍고 "수업 끝"을 고르거나, 아래 체크아웃 링크를 화면에 띄워 주세요. 도구를 미리 고르면 체크아웃 첫 질문을 건너뜁니다.</p>
+      <div class="qrs" id="qrs"></div>
+    </section>
+
+    <section class="card">
+      <h2>시간표 설문 QR — 「우리 반 시간표, 내가 짠다면」</h2>
+      <p class="lead no-print">3~6학년 대상 1회 설문(2분). 위에서 고른 학년·반 기준으로 <code>survey.html?g=&amp;c=</code> 주소의 QR을 만듭니다. 결과는 대시보드 아래 "시간표 설문" 패널에서 부산 실제 시간표와 비교됩니다.</p>
+      <div class="qrs" id="sqrs"></div>
+    </section>
+
+    <section class="card">
+      <h2>수업 운영 팁</h2>
+      <ol class="steps">
+        <li><b>수업 시작 1분</b> — 칠판이나 TV에 학급 QR을 띄우고 체크인. 태블릿은 즐겨찾기에 넣어 두면 QR 없이도 됩니다.</li>
+        <li><b>수업 끝 1분</b> — 정리 시간에 체크아웃. 체크아웃 QR(도구가 미리 선택된 주소)을 쓰면 6문항, 30초면 끝납니다.</li>
+        <li><b>우리 반 데이터 읽기</b> — 체크아웃 직후 "우리 반 지금 보기"를 TV에 띄우고 "오늘 우리 반 기분은 몇 명이 4점이었을까?" 같은 질문으로 그래프 읽기 연습.</li>
+        <li><b>학년 비교</b> — 대시보드의 자신감 전→후, 기기 사용 시간 그룹 비교는 연구회 발표 자료로 바로 쓸 수 있습니다 (CSV 내려받기).</li>
+        <li>같은 기기에서 하루 두 번 체크인하면 안내가 뜹니다. 공용 태블릿이면 "다시 하기"를 누르면 됩니다.</li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js?v=2"></script>
+<script src="common.js"></script>
+<script>
+(function () {
+  const D = window.DCC, CFG = D.CFG;
+  const $ = (s) => document.querySelector(s);
+
+  // PIN (세션 동안 기억)
+  function unlock() { $("#lock").classList.add("hidden"); $("#menu").classList.remove("hidden"); try { sessionStorage.setItem("dcc_teacher", "1"); } catch (e) {} init(); }
+  if ((() => { try { return sessionStorage.getItem("dcc_teacher") === "1"; } catch (e) { return false; } })()) unlock();
+  $("#pinBtn").addEventListener("click", tryPin); $("#pin").addEventListener("keydown", (e) => { if (e.key === "Enter") tryPin(); });
+  function tryPin() { if ($("#pin").value === String(CFG.TEACHER_PIN || "")) unlock(); else $("#pinErr").classList.remove("hidden"); }
+
+  let inited = false;
+  function init() {
+    if (inited) return; inited = true;
+    $("#connStatus").textContent = D.DEMO ? "지금은 미리보기 모드입니다. 응답은 이 기기에만 저장됩니다." : "구글 시트에 연결되어 있습니다: " + CFG.SCRIPT_URL.slice(0, 60) + "…";
+    $("#connStatus").className = "status " + (D.DEMO ? "" : "ok");
+    for (let i = 1; i <= 6; i++) $("#qGrade").insertAdjacentHTML("beforeend", `<option value="${i}">${i}학년</option>`);
+    for (let i = 1; i <= 10; i++) $("#qCls").insertAdjacentHTML("beforeend", `<option value="${i}">${i}반</option>`);
+    for (let i = 1; i <= 6; i++) $("#qPeriod").insertAdjacentHTML("beforeend", `<option value="${i}">${i}교시</option>`);
+    D.TOOLS.forEach((t) => $("#qTool").insertAdjacentHTML("beforeend", `<option value="${t}">${t}</option>`));
+    const base = location.href.replace(/teacher\.html.*$/, "index.html");
+    $("#qBase").value = base;
+    const last = D.lsGet("dcc_teacher_last", {}); if (last.g) $("#qGrade").value = last.g;
+    ["qGrade", "qCls", "qPeriod", "qTool", "qBase"].forEach((id) => $("#" + id).addEventListener("input", renderQR));
+    $("#printBtn").addEventListener("click", () => window.print());
+    renderQR();
+  }
+  function renderQR() {
+    const g = $("#qGrade").value, cv = $("#qCls").value, p = $("#qPeriod").value, tool = $("#qTool").value, base = $("#qBase").value.trim();
+    D.lsSet("dcc_teacher_last", { g });
+    $("#projLink").href = `dashboard.html?g=${g}&c=${cv === "all" ? 1 : cv}&date=today`;
+    const classes = cv === "all" ? Array.from({ length: 10 }, (_, i) => i + 1) : [+cv];
+    const box = $("#qrs"); box.innerHTML = "";
+    const sbox = $("#sqrs"); sbox.innerHTML = "";
+    const sbase = base.replace(/index\.html$/, "survey.html");
+    if (+g < 3) sbox.innerHTML = `<p class="lead">시간표 설문은 3~6학년용입니다. 학년을 3 이상으로 바꿔 주세요.</p>`;
+    else classes.forEach((c) => {
+      const url = `${sbase}?g=${g}&c=${c}`;
+      const el = document.createElement("div"); el.className = "qr";
+      el.innerHTML = `<h3>${g}학년 ${c}반 · 시간표 설문</h3><div class="code"></div><div class="url">${url}</div><div class="links"><a href="${url}" target="_blank" rel="noopener">설문 링크</a></div>`;
+      sbox.appendChild(el);
+      try { new QRCode(el.querySelector(".code"), { text: url, width: 168, height: 168, correctLevel: QRCode.CorrectLevel.M }); } catch (e) { el.querySelector(".code").textContent = "QR 라이브러리를 불러오지 못했습니다."; }
+    });
+    classes.forEach((c) => {
+      const q = `?g=${g}&c=${c}${p ? `&p=${p}` : ""}`;
+      const urlBefore = base + q, urlAfter = base + q + "&phase=after" + (tool ? `&tool=${encodeURIComponent(tool)}` : "");
+      const el = document.createElement("div"); el.className = "qr";
+      el.innerHTML = `<h3>${g}학년 ${c}반</h3><div class="code"></div><div class="url">${urlBefore}</div><div class="links"><a href="${urlBefore}" target="_blank" rel="noopener">체크인 링크</a><a class="after" href="${urlAfter}" target="_blank" rel="noopener">체크아웃 링크</a></div>`;
+      box.appendChild(el);
+      try { new QRCode(el.querySelector(".code"), { text: urlBefore, width: 168, height: 168, correctLevel: QRCode.CorrectLevel.M }); }
+      catch (e) { el.querySelector(".code").textContent = "QR 라이브러리를 불러오지 못했습니다 (인터넷 연결 확인)."; }
+    });
+  }
+})();
+</script>
+</body>
+</html>

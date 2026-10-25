@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 반 시간표, 내가 짠다면</title>
+<meta name="description" content="3~6학년 시간표 설문 — 내가 원하는 교시와 부산 실제 시간표 비교">
+<meta name="theme-color" content="#fffdf7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .wrap { max-width: 520px; margin: 0 auto; padding: 14px 16px 40px; }
+  .hero { display: flex; align-items: center; gap: 14px; padding: 8px 2px 14px; }
+  .hero-art { width: 84px; height: 84px; flex: 0 0 84px; position: relative; }
+  /* 시간표 격자 일러스트 */
+  .tt { position: absolute; inset: 6px; border: 3px solid var(--ink); border-radius: 12px; background: var(--card); display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 4px; padding: 7px; }
+  .tt i { border-radius: 4px; background: var(--paper-2); }
+  .tt i:nth-child(1) { background: var(--mint); } .tt i:nth-child(5) { background: var(--coral); } .tt i:nth-child(9) { background: var(--sun); } .tt i:nth-child(6) { background: var(--sky-soft); }
+  .hero-art .pin { position: absolute; right: -2px; top: -2px; width: 22px; height: 22px; background: var(--sun); border: 3px solid var(--ink); border-radius: 50%; }
+  .hero h1 { margin: 0; font-size: 26px; line-height: 1.15; word-break: keep-all; }
+  .hero p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+  .noname { font-size: 12px; color: var(--ink-3); margin: 0 0 12px 2px; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: pop .22s ease-out; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.99); } to { opacity: 1; transform: none; } }
+  .card { padding: 20px 18px 22px; }
+  .card h2 { margin: 0 0 4px; font-size: 24px; line-height: 1.25; }
+  .card .sub { margin: 0 0 14px; color: var(--ink-2); font-size: 14px; }
+  .field-label { font-size: 14px; font-weight: 700; color: var(--ink-2); margin: 14px 0 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .field-label small { font-weight: 400; color: var(--ink-3); }
+  .chips { display: grid; gap: 8px; }
+  .chips.c4 { grid-template-columns: repeat(4, 1fr); }
+  .chips.c5 { grid-template-columns: repeat(5, 1fr); }
+  .chips.c7 { grid-template-columns: repeat(7, 1fr); }
+  .chip { min-height: 44px; border: 2px solid var(--line); border-radius: var(--radius-sm); background: var(--card); font-weight: 600; font-size: 16px; padding: 0; transition: background .12s, border-color .12s; }
+  .chip.on { background: var(--mint); border-color: var(--ink); color: #fff; box-shadow: 0 2px 0 var(--ink); }
+  .chip.locked { opacity: .55; pointer-events: none; }
+  .chip.locked.on { opacity: 1; }
+  .qhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+  .back { border: none; background: transparent; color: var(--ink-2); font-size: 14px; padding: 6px 4px; font-weight: 600; }
+  .dots { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; max-width: 200px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--paper-2); }
+  .dots i.done { background: var(--mint); border-color: var(--mint); }
+  .dots i.cur { border-color: var(--ink); background: var(--sun); }
+  .q { font-family: var(--font-display); font-size: 25px; line-height: 1.3; margin: 4px 0 4px; word-break: keep-all; }
+  .q-help { color: var(--ink-2); font-size: 14px; margin: 0 0 16px; }
+  .periods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+  .periods .opt { min-height: 78px; }
+  .periods .opt .big { font-family: var(--font-display); font-size: 30px; line-height: 1; }
+  .periods .opt .lbl { font-size: 13px; }
+  .opt { border: 2px solid var(--line); background: var(--card); border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 6px 8px; transition: transform .08s, background .12s, border-color .12s; }
+  .opt .lbl { font-size: 12px; color: var(--ink-2); line-height: 1.2; text-align: center; word-break: keep-all; }
+  .opt:active { transform: scale(.96); }
+  .opt.on { background: var(--mint-soft); border-color: var(--mint); box-shadow: 0 3px 0 var(--mint); }
+  .subjects { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .subjects .opt { min-height: 58px; }
+  .subjects .opt .lbl { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .choices { display: grid; grid-template-columns: 1fr; gap: 9px; }
+  .choices .opt { min-height: 54px; flex-direction: row; justify-content: flex-start; gap: 10px; padding: 10px 14px; text-align: left; }
+  .choices .opt .emo { font-size: 22px; }
+  .choices .opt .lbl { font-size: 15px; text-align: left; font-weight: 600; color: var(--ink); }
+  .choices .opt.on::after { content: "✓"; margin-left: auto; font-weight: 700; color: var(--mint); }
+  textarea { width: 100%; min-height: 90px; border: 2px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--card); resize: none; font-size: 16px; }
+  textarea:focus { border-color: var(--mint); outline: none; }
+  .counter { text-align: right; font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; }
+  .actions .btn { flex: 1; }
+  .done { text-align: center; padding: 26px 18px 24px; }
+  .done .cap { font-size: 56px; line-height: 1; margin-bottom: 6px; }
+  .done h2 { font-size: 26px; margin: 6px 0 4px; word-break: keep-all; }
+  .summary { margin: 16px auto 0; border: 2px dashed var(--line); border-radius: var(--radius); padding: 12px 14px; text-align: left; font-size: 14px; }
+  .summary div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+  .summary span:last-child { font-weight: 700; }
+  .notice { background: var(--sun-soft); border: 2px solid var(--ink); border-radius: var(--radius); padding: 12px 14px; font-size: 14px; margin-bottom: 14px; }
+  .notice a { color: var(--ink); font-weight: 700; }
+  .footer { text-align: center; color: var(--ink-3); font-size: 12px; margin-top: 22px; }
+  .footer a { color: var(--ink-3); }
+  .err { color: var(--warn); font-size: 14px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="demo-banner">미리보기 모드 — 구글 시트 연결 전</div>
+<main class="wrap">
+  <header class="hero">
+    <div class="hero-art" aria-hidden="true"><div class="tt"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="pin"></div></div>
+    <div>
+      <h1>우리 반 시간표, 내가 짠다면</h1>
+      <p>3~6학년 · 2분이면 끝 · 부산 실제 시간표와 비교해요</p>
+    </div>
+  </header>
+  <p class="noname">이름은 받지 않아요 (비식별 데이터)</p>
+
+  <section class="screen card active" id="s-setup">
+    <div id="guard" class="notice" style="display:none"></div>
+    <h2>누가 짜 볼까?</h2>
+    <p class="sub">학년·반·번호만 골라 줘. 시간표를 짜는 마음으로 솔직하게 답하면 돼.</p>
+    <div class="field-label"><span>학년</span></div>
+    <div class="chips c4" id="pickGrade" role="radiogroup" aria-label="학년"></div>
+    <div class="field-label"><span>반</span></div>
+    <div class="chips c5" id="pickCls" role="radiogroup" aria-label="반"></div>
+    <div class="field-label"><span>번호</span><small>내 번호를 눌러</small></div>
+    <div class="chips c7" id="pickNum" role="radiogroup" aria-label="번호"></div>
+    <div class="actions"><button class="btn primary block" id="startBtn" disabled>시작하기</button></div>
+  </section>
+
+  <section class="screen card" id="s-q">
+    <div class="qhead">
+      <button class="back" id="backBtn">‹ 이전</button>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+    </div>
+    <h2 class="q" id="qText"></h2>
+    <p class="q-help" id="qHelp"></p>
+    <div id="qBody"></div>
+    <div class="actions" id="qActions"></div>
+    <p class="err" id="qErr" style="display:none"></p>
+  </section>
+
+  <section class="screen card done" id="s-done">
+    <div class="cap">🎓</div>
+    <h2>고마워! 네 답은 부산 290개 학교 시간표와 비교돼</h2>
+    <p class="sub">선생님이 결과 그래프를 보여 줄 거야.</p>
+    <div class="summary" id="summary"></div>
+    <div class="actions"><a class="btn ghost" href="survey.html" id="againBtn">처음으로</a></div>
+  </section>
+
+  <p class="footer"><span id="schoolName"></span> · <a href="index.html">디지털 수업 데이터 체크인</a></p>
+</main>
+
+<script src="config.js?v=2"></script>
+<script src="common.js"></script>
+<script>
+(function () {
+  const D = window.DCC, CFG = D.CFG;
+  const $ = (s) => document.querySelector(s);
+  $("#schoolName").textContent = CFG.SCHOOL || "";
+  const params = new URLSearchParams(location.search);
+  const saved = D.lsGet("dcc_me", {});
+  const state = {
+    grade: params.get("g") ? +params.get("g") : (saved.grade >= 3 ? saved.grade : null),
+    cls: params.get("c") ? +params.get("c") : saved.cls || null,
+    num: saved.num || null, locked: !!(params.get("g") && params.get("c")), override: false, answers: {}, qi: 0
+  };
+  const P = [1, 2, 3, 4, 5, 6];
+  const subjects = () => (state.grade >= 5 ? D.SUBJECTS : D.SUBJECTS.filter((s) => s !== "실과"));
+  const Q = [
+    { key: "focus_best", type: "period", text: "하루 중 머리가 가장 잘 돌아가는 교시는?", lbl: ["아침 첫 시간", "", "", "", "점심 먹고 바로", "마지막"] },
+    { key: "focus_worst", type: "period", text: "가장 힘든(집중 안 되는) 교시는?", lbl: ["아침 첫 시간", "", "", "", "점심 먹고 바로", "마지막"] },
+    { key: "worst_why", type: "choice", text: "그 교시가 힘든 이유는?", emo: ["😴", "🍙", "🥱", "🥵", "😑", "🤷"], opts: D.WORST_WHY },
+    { key: "p1_subject", type: "subject", text: "1교시에 하고 싶은 과목은?", help: "아침 첫 시간, 딱 하나만" },
+    { key: "p1_why", type: "choice", text: "그 이유는?", emo: ["🧠", "💛", "⏱️", "🏃", "✨"], opts: D.P1_WHY },
+    { key: "last_subject", type: "subject", text: "마지막 교시(5~6교시)에 하고 싶은 과목은?" },
+    { key: "after_lunch_subject", type: "subject", text: "점심 먹고 바로(5교시) 하면 좋은 과목은?" },
+    { key: "science_pref", type: "period", text: "과학은 몇 교시가 좋아?", lbl: ["", "", "", "", "", ""] },
+    { key: "two_in_row", type: "choice", text: "과학·미술처럼 실험·만들기 과목은 어떻게 하는 게 좋아?", emo: ["🧱", "🔲", "🤷"], opts: D.BLOCK_OPTIONS, sub: ["두 교시 연속(블록)으로", "한 교시씩 나눠서", ""] },
+    { key: "wish", type: "note", text: "우리 반 시간표에서 바꾸고 싶은 것 한 줄", help: "선택이야. 60자까지." }
+  ];
+
+  function chips(el, vals, key, locked) {
+    el.innerHTML = "";
+    vals.forEach((i) => {
+      const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.dataset.v = i; b.textContent = i; b.setAttribute("role", "radio");
+      if (state[key] === i) b.classList.add("on"); if (locked) b.classList.add("locked");
+      b.addEventListener("click", () => { state[key] = i; el.querySelectorAll(".chip").forEach((c) => c.classList.toggle("on", +c.dataset.v === i)); checkReady(); });
+      el.appendChild(b);
+    });
+  }
+  chips($("#pickGrade"), [3, 4, 5, 6], "grade", state.locked);
+  chips($("#pickCls"), Array.from({ length: 10 }, (_, i) => i + 1), "cls", state.locked);
+  chips($("#pickNum"), Array.from({ length: 35 }, (_, i) => i + 1), "num", false);
+  function checkReady() { const ok = state.grade && state.cls && state.num; $("#startBtn").disabled = !ok; return ok; }
+  checkReady();
+  const DONE_KEY = "dcc_survey_done";
+  (function guard() {
+    const was = D.lsGet(DONE_KEY, null); const g = $("#guard");
+    if (was && !state.override) {
+      g.style.display = "block";
+      g.innerHTML = `이 기기에서는 이미 설문했어 (${was.grade}학년 ${was.cls}반 ${was.num}번, ${was.date}). 다른 사람이거나 다시 하려면 <a href="#" id="overrideLink">다시 하기</a>`;
+      $("#overrideLink").addEventListener("click", (e) => { e.preventDefault(); state.override = true; g.style.display = "none"; });
+    }
+  })();
+  $("#startBtn").addEventListener("click", () => {
+    if (!checkReady()) return;
+    D.lsSet("dcc_me", Object.assign(saved, { grade: state.grade, cls: state.cls, num: state.num }));
+    state.answers = {}; state.qi = 0; show("s-q"); renderQ();
+  });
+
+  function show(id) { document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.id === id)); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function renderDots() { $("#dots").innerHTML = Q.map((q, i) => `<i class="${i < state.qi ? "done" : i === state.qi ? "cur" : ""}"></i>`).join(""); }
+  function optBtn(cls, inner, on, onClick) { const b = document.createElement("button"); b.type = "button"; b.className = "opt" + (on ? " on" : ""); b.innerHTML = inner; b.addEventListener("click", onClick); return b; }
+  function select(q, grid, b, val) { state.answers[q.key] = val; grid.querySelectorAll(".opt").forEach((o) => o.classList.remove("on")); b.classList.add("on"); setTimeout(next, 220); }
+  function renderQ() {
+    const q = Q[state.qi]; if (!q) return finish();
+    renderDots(); $("#qText").textContent = q.text; $("#qHelp").textContent = q.help || ""; $("#qErr").style.display = "none";
+    $("#backBtn").style.visibility = state.qi === 0 ? "hidden" : "visible";
+    const body = $("#qBody"), act = $("#qActions"); body.innerHTML = ""; act.innerHTML = ""; const cur = state.answers[q.key];
+    if (q.type === "period") {
+      const g = document.createElement("div"); g.className = "periods";
+      P.forEach((p, i) => { const b = optBtn("", `<span class="big">${p}</span><span class="lbl">${q.lbl[i] || "교시"}</span>`, cur === p, () => select(q, g, b, p)); b.setAttribute("aria-label", p + "교시"); g.appendChild(b); });
+      body.appendChild(g);
+    } else if (q.type === "subject") {
+      const g = document.createElement("div"); g.className = "subjects";
+      subjects().forEach((s) => { const b = optBtn("", `<span class="lbl">${s}</span>`, cur === s, () => select(q, g, b, s)); g.appendChild(b); });
+      body.appendChild(g);
+    } else if (q.type === "choice") {
+      const g = document.createElement("div"); g.className = "choices";
+      q.opts.forEach((o, i) => { const b = optBtn("", `<span class="emo">${q.emo[i]}</span><span class="lbl">${(q.sub && q.sub[i]) || o}</span>`, cur === o, () => select(q, g, b, o)); g.appendChild(b); });
+      body.appendChild(g);
+    } else if (q.type === "note") {
+      const ta = document.createElement("textarea"); ta.maxLength = 60; ta.placeholder = "예) 체육을 1교시로 옮기고 싶어요"; ta.value = cur || ""; ta.setAttribute("aria-label", "바꾸고 싶은 것");
+      const c = document.createElement("div"); c.className = "counter"; c.textContent = `${ta.value.length} / 60`;
+      ta.addEventListener("input", () => { state.answers.wish = ta.value; c.textContent = `${ta.value.length} / 60`; });
+      body.appendChild(ta); body.appendChild(c);
+      const skip = document.createElement("button"); skip.className = "btn ghost"; skip.textContent = "건너뛰기"; skip.addEventListener("click", () => { state.answers.wish = ""; next(); });
+      const send = document.createElement("button"); send.className = "btn coral"; send.textContent = "보내기"; send.addEventListener("click", next);
+      act.appendChild(skip); act.appendChild(send);
+    }
+  }
+  function next() { state.qi++; renderQ(); }
+  $("#backBtn").addEventListener("click", () => { if (state.qi > 0) { state.qi--; renderQ(); } });
+
+  let sending = false;
+  async function finish() {
+    if (sending) return; sending = true;
+    $("#qText").textContent = "보내는 중…"; $("#qBody").innerHTML = ""; $("#qActions").innerHTML = "";
+    const a = state.answers;
+    const row = { grade: state.grade, cls: state.cls, num: state.num, focus_best: a.focus_best, focus_worst: a.focus_worst, worst_why: a.worst_why, p1_subject: a.p1_subject, p1_why: a.p1_why,
+      last_subject: a.last_subject, after_lunch_subject: a.after_lunch_subject, science_pref: a.science_pref, two_in_row: a.two_in_row, wish: a.wish || "" };
+    try {
+      await D.submitSurvey(row);
+      D.lsSet(DONE_KEY, { grade: state.grade, cls: state.cls, num: state.num, date: D.todayStr() });
+      $("#summary").innerHTML = [["머리가 제일 잘 돌아가는 교시", a.focus_best + "교시"], ["가장 힘든 교시", a.focus_worst + "교시"], ["1교시 희망 과목", a.p1_subject], ["마지막 교시 희망 과목", a.last_subject], ["과학 희망 교시", a.science_pref + "교시"], ["실험·만들기 과목", a.two_in_row]]
+        .map(([k, v]) => `<div><span>${k}</span><span>${v}</span></div>`).join("");
+      show("s-done");
+    } catch (e) {
+      state.qi = Q.length - 1; renderQ(); $("#qErr").style.display = "block"; $("#qErr").textContent = "보내기에 실패했어. 인터넷을 확인하고 다시 눌러 줘. (" + (e.message || "") + ")";
+    }
+    sending = false;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+/* 디지털 수업 데이터 체크인 — 공통 스타일 (디자인 토큰) */
+:root {
+  color-scheme: light;
+  --paper: #fffdf7;          /* 크림 종이 */
+  --paper-2: #f6f1e3;        /* 종이 그늘 */
+  --grid: rgba(26, 158, 135, 0.13);
+  --card: #ffffff;
+  --ink: #1f2a2e;
+  --ink-2: #4b5a60;
+  --ink-3: #8a979c;
+  --line: #d9d3c2;
+  --mint: #1a9e87;
+  --mint-soft: #d7f2eb;
+  --coral: #e8604f;
+  --coral-soft: #fde3de;
+  --sun: #f2b705;
+  --sun-soft: #fff1c2;
+  --sky: #2a78d6;
+  --sky-soft: #dbe9fb;
+  --ok: #0ca30c;
+  --warn: #d03b3b;
+  /* 차트 범주색 (validate_palette.js 통과: light) */
+  --s1: #1a9e87; --s2: #e8604f; --s3: #2a78d6; --s4: #e3a300; --s5: #e87ba4; --s6: #6250d6;
+  --chart-grid: #e8e3d4;
+  --chart-axis: #c3bda9;
+  --radius-lg: 22px;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --font-display: "Jua", "Noto Sans KR", sans-serif;
+  --font-body: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #171b1a;
+    --paper-2: #1f2423;
+    --grid: rgba(26, 158, 135, 0.12);
+    --card: #22282a;
+    --ink: #f0efe8;
+    --ink-2: #c3c6bd;
+    --ink-3: #8a9094;
+    --line: #3a4244;
+    --mint-soft: #1c3a35;
+    --coral-soft: #44282a;
+    --sun-soft: #3f3618;
+    --sky-soft: #1e3147;
+    --s1: #1a9e87; --s2: #e8604f; --s3: #3987e5; --s4: #c98500; --s5: #d55181; --s6: #9085e9;
+    --chart-grid: #2c3233;
+    --chart-axis: #3f4749;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171b1a;
+  --paper-2: #1f2423;
+  --grid: rgba(26, 158, 135, 0.12);
+  --card: #22282a;
+  --ink: #f0efe8;
+  --ink-2: #c3c6bd;
+  --ink-3: #8a9094;
+  --line: #3a4244;
+  --mint-soft: #1c3a35;
+  --coral-soft: #44282a;
+  --sun-soft: #3f3618;
+  --sky-soft: #1e3147;
+  --s1: #1a9e87; --s2: #e8604f; --s3: #3987e5; --s4: #c98500; --s5: #d55181; --s6: #9085e9;
+  --chart-grid: #2c3233;
+  --chart-axis: #3f4749;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+h1, h2, h3, .display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--mint); }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* 상단 미리보기 띠 */
+.demo-banner {
+  display: none;
+  background: var(--sun);
+  color: #1f2a2e;
+  font-size: 13px;
+  text-align: center;
+  padding: 6px 12px;
+  font-weight: 500;
+}
+body.demo .demo-banner { display: block; }
+
+/* 두툼한 버튼 — 종이 위 스티커 느낌 (그림자 대신 오프셋 밑판) */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 10px 20px;
+  border: 2px solid var(--ink); border-radius: var(--radius);
+  background: var(--card); color: var(--ink);
+  font-weight: 600; font-size: 16px;
+  box-shadow: 0 3px 0 var(--ink);
+  transition: transform .08s ease, box-shadow .08s ease, background .15s;
+  word-break: keep-all;
+  text-decoration: none;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.btn.primary { background: var(--mint); color: #fff; }
+.btn.coral { background: var(--coral); color: #fff; }
+.btn.sun { background: var(--sun); color: #1f2a2e; }
+.btn.ghost { border-color: var(--line); box-shadow: 0 3px 0 var(--line); background: transparent; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.block { width: 100%; }
+.btn.small { min-height: 38px; padding: 6px 14px; font-size: 14px; border-radius: var(--radius-sm); }
+
+.card {
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 0 var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
