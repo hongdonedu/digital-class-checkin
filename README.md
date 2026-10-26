@@ -1,5 +1,7 @@
 # 디지털 수업 데이터 체크인
 
+> **배포됨** — https://hongdonedu.github.io/digital-class-checkin/ (시간표 설문: `survey.html`, 선생님 메뉴: `teacher.html`). 구글 시트·Apps Script 연결 완료.
+
 > 오늘의 나를 데이터로 남기자 — 수업 시작 1분 체크인, 수업 끝 1분 체크아웃.
 > 1~6학년 디지털·AI 도구 활용 수업(바이브코딩·캔바·AI 도구·태블릿 앱 등)의 데이터리터러시 연구회용 정적 웹앱입니다.
 
@@ -14,7 +16,7 @@
 | `config.js` | 설정 (구글 시트 연결 주소, 학교명, PIN) |
 | `common.js` / `shared.css` | 공통 로직·스타일 (수정 불필요) |
 | `apps-script/Code.gs` | 구글 시트에 붙일 Apps Script |
-| `assets/hero.webp`, `assets/mascot.webp` | (선택) 타이틀 그림·마스코트. 없으면 CSS 그림이 대신 나옵니다 |
+| `assets/img/*.webp` | 시간표 설문 그림 (ChatGPT 생성 3D 일러스트: 키아트 hero, 마스코트 째깍이 owl-*, 과목 아이콘 s-*, 이유 아이콘 r-*·p-*, medal) |
 
 **연결 전에도 바로 써 볼 수 있습니다.** `config.js` 의 `SCRIPT_URL` 이 비어 있으면 "미리보기 모드"로 동작합니다. 학생 페이지는 이 기기(브라우저)에만 저장하고, 대시보드는 "예시 데이터"라고 표시된 가상 데이터를 보여 줍니다. 내일 연구회 시연은 이 상태로도 가능합니다.
 
