@@ -3,7 +3,7 @@
 // Apps Script 웹 앱 URL(https://script.google.com/macros/s/…/exec)을 넣으면 구글 시트에 기록됩니다.
 // 이 파일을 바꾼 뒤에는 각 html 의 <script src="config.js?v=1"> 숫자를 하나 올려 주세요.
 window.APP_CONFIG = {
-  SCRIPT_URL: "",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw_UVhOomT3RXGNWj2H25fHWnkhwfdWjsWt8F5iHpc3UDdtsJbgfb1MZ1I78u1Vi1nW/exec",
   SCHOOL: "명진초등학교",
   TEACHER_PIN: "2022",
   APP_NAME: "디지털 수업 데이터 체크인",
