@@ -56,7 +56,7 @@
   .lead em { font-style: normal; color: var(--gold); font-weight: 700; }
 
   /* ---------- 본문 ---------- */
-  main { max-width: 620px; margin: -18px auto 0; padding: 0 16px 48px; position: relative; }
+  main { max-width: 620px; margin: -18px auto 0; padding: 0 16px 40px; position: relative; }
   .screen { display: none; }
   .screen.active { display: block; animation: rise .32s cubic-bezier(.2, .9, .3, 1.2); }
   @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
@@ -257,12 +257,10 @@
       <img class="medal" src="assets/img/medal.webp" alt="시간표 설계사 메달">
     </div>
     <h2>시간표 설계 완료!</h2>
-    <p class="sub">고마워! 네 답은 <b>부산 290개 학교 시간표</b>와 비교돼.<br>선생님이 우리 반 결과 그래프를 보여 줄 거야.</p>
     <div class="summary" id="summary"></div>
     <div class="actions"><a class="btn ghost" href="survey.html" id="againBtn">처음으로</a></div>
   </section>
 
-  <p class="footer"><span id="schoolName"></span> · <a href="index.html">디지털 수업 데이터 체크인</a></p>
 </main>
 
 <script src="config.js?v=4"></script>
@@ -271,7 +269,6 @@
 (function () {
   const D = window.DCC, CFG = D.CFG;
   const $ = (s) => document.querySelector(s);
-  $("#schoolName").textContent = CFG.SCHOOL || "";
 
   // 반짝이 별
   const st = $("#stars");
